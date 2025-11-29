@@ -3,6 +3,10 @@ import torch.nn as nn
 from torchvision import transforms
 import os
 from PIL import Image
+import socket
+import struct
+import numpy as np
+
 
 class Encoder(nn.Module):
     def __init__(self, c_last):
@@ -63,7 +67,23 @@ z_flat=z.squeeze(0)
 inphase=z_flat[0::2]
 quadrature=z_flat[1::2]
 
-print(inphase,quadrature)
+HOST = '10.171.9.176' # IP address of the receiving computer
+PORT = 6000          # Port number
+# 1. Combine I and Q into a single 1D NumPy array (for serialization)
+z_numpy = np.empty(inphase.numel() * 2, dtype=np.float32)
+z_numpy[0::2] = inphase.cpu().numpy()
+z_numpy[1::2] = quadrature.cpu().numpy()
+z_bytes = z_numpy.tobytes()
+header = struct.pack('!I', len(z_bytes))
+print(f"Sending {len(z_bytes)} bytes of Z vector data...")
 
+try:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((HOST, PORT))
+        s.sendall(header)   # Send header first
+        s.sendall(z_bytes)  # Send the raw data
+        print("Data sent successfully.")
+except ConnectionRefusedError:
+    print(f"ERROR: Could not connect to {HOST}:{PORT}. Check the receiver and firewall.")
 
 
