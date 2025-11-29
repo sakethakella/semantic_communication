@@ -67,7 +67,7 @@ z_flat=z.squeeze(0)
 inphase=z_flat[0::2]
 quadrature=z_flat[1::2]
 
-HOST = '10.171.9.176' # IP address of the receiving computer
+HOST = '10.147.188.26' # IP address of the receiving computer
 PORT = 6000          # Port number
 # 1. Combine I and Q into a single 1D NumPy array (for serialization)
 z_numpy = np.empty(inphase.numel() * 2, dtype=np.float32)
